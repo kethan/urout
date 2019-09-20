@@ -19,6 +19,9 @@ A router version of [```express```](http://expressjs.com/) built with [```polka`
 $ npm install --save urout
 ```
 # Usage
+
+Browser
+
 ```js
 const Router = require('urout');
 function getRouter({
@@ -54,12 +57,59 @@ function getRouter({
         .get('/err', (req, res) => {
             throw 'e';
         });
+
     app.handler({ method: 'GET', url: '/' }, res);
     app.handler({ method: 'GET', url: '/err' }, res);
     app.handler({ method: 'GET', url: '/nomatch' }, res);
     app.handler({ method: 'GET', url: '/users' }, res);
 ```
+Node.js
 
+```js
+const Router = require('urout');
+const http = require('http');
+
+class Server extends Router.Router {
+    constructor(opts) {
+        super(opts);
+        this.server = opts && opts.server;
+    }
+
+    listen(port, err) {
+        (this.server = this.server || http.createServer()).on('request', this.handler);
+        this.server.listen.apply(this.server, arguments);
+    }
+}
+
+module.exports = function({
+    onError = (err, req, res) => {
+        res.end(err)
+    }, onNoMatch = (req, res, next) => {
+        res.end('no match');
+    }
+} = {}) {
+    return new Server({ onError, onNoMatch });
+}
+
+let app = getRouter();
+let users = getRouter()
+    .get('/', (req, res) => {
+        res.end('users!')
+    })
+app
+    .use((req, res, next) => {
+        console.log('mid');
+        next();
+    })
+    .use('users', users)
+    .get('/', (req, res) => {
+        res.end('root');
+    })
+    .get('/err', (req, res) => {
+        throw 'e';
+    })
+    .listen(3000)
+```
 Look for more usage in examples folder for node.js API server, express middleware and browser implementation.
 
 # API
