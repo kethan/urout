@@ -7,7 +7,6 @@ coverage
 
 # Dependency directories
 node_modules
-dist
 
 # npm package lock
 package-lock.json

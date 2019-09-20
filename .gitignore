@@ -35,7 +35,6 @@ jspm_packages
 
 # Lib
 lib
-dist
 
 # npm package lock
 package-lock.json
