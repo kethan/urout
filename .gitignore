@@ -45,7 +45,7 @@ others
 .DS_Store
 
 # Microbundle cache
-.rts2.*
+.rts2_*
 
 # Uploads
-uploads
+uploadsdebug.log

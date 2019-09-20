@@ -19,7 +19,7 @@ A router version of [```express```](http://expressjs.com/) built with [```polka`
 $ npm install --save urout
 ```
 # Usage
-```
+```js
 const Router = require('urout');
 function getRouter({
         onError = (err, req, res) => {
