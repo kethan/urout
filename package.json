@@ -1,0 +1,30 @@
+{
+  "name": "urout",
+  "source": "src/index.ts",
+  "main": "dist/urout.js",
+  "module": "dist/urout.mjs",
+  "unpkg": "dist/urout.umd.js",
+  "types": "src/types/urout.d.ts",
+  "scripts": {
+    "build": "microbundle --sourcemap false",
+    "dev": "microbundle watch --sourcemap false"
+  },
+  "devDependencies": {
+    "microbundle": "^0.11.0",
+    "typescript": "~3.1.1"
+  },
+  "description": "**Fast, unopinionated, minimalist browser and server router ;)**",
+  "version": "1.0.1",
+  "directories": {
+    "example": "examples"
+  },
+  "keywords": [
+    "API",
+    "browser",
+    "router",
+    "express",
+    "urout"
+  ],
+  "author": "Kethan Surana",
+  "license": "ISC"
+}
