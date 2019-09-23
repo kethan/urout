@@ -13,8 +13,8 @@
     "microbundle": "^0.11.0",
     "typescript": "~3.1.1"
   },
-  "description": "**Fast, unopinionated, minimalist browser and server router ;)**",
-  "version": "1.0.5",
+  "description": "Fast, unopinionated, minimalist browser and server router ;)",
+  "version": "1.0.8",
   "directories": {
     "example": "examples"
   },
@@ -25,6 +25,15 @@
     "express",
     "urout"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kethan/urout.git"
+  },
   "author": "Kethan Surana",
-  "license": "ISC"
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kethan/urout/issues"
+  },
+  "homepage": "https://github.com/kethan/urout#readme",
+  "dependencies": {}
 }

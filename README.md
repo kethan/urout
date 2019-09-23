@@ -23,7 +23,7 @@ $ npm install --save urout
 Browser
 
 ```js
-const Router = require('urout');
+const urout = require('urout');
 function getRouter({
         onError = (err, req, res) => {
             res.end(err)
@@ -31,7 +31,7 @@ function getRouter({
             res.end('no match');
         }
     } = {}) {
-        return new Router.Router({ onError, onNoMatch });
+        return new urout.Router({ onError, onNoMatch });
     }
 
     let res = {
@@ -66,10 +66,10 @@ function getRouter({
 Node.js
 
 ```js
-const Router = require('urout');
+const urout = require('urout');
 const http = require('http');
 
-class Server extends Router.Router {
+class Server extends urout.Router {
     constructor(opts) {
         super(opts);
         this.server = opts && opts.server;
