@@ -81,7 +81,7 @@ class Server extends urout.Router {
     }
 }
 
-module.exports = function({
+function getRouter({
     onError = (err, req, res) => {
         res.end(err)
     }, onNoMatch = (req, res, next) => {
