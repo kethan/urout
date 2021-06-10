@@ -1,6 +1,6 @@
 export default function (str: any, loose?: boolean) {
     if (str instanceof RegExp) return { keys: [], pattern: str };
-    var c, o, tmp, ext, keys:any = [], pattern = '', arr = str.split('/');
+    var c, o, tmp, ext, keys: any = [], pattern = '', arr = str.split('/');
     arr[0] || arr.shift();
 
     while (tmp = arr.shift()) {

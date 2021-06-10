@@ -1,39 +1,46 @@
 {
-  "name": "urout",
-  "source": "src/index.ts",
-  "main": "dist/urout.js",
-  "module": "dist/urout.mjs",
-  "unpkg": "dist/urout.umd.js",
-  "types": "src/types/urout.d.ts",
-  "scripts": {
-    "build": "microbundle --sourcemap false",
-    "dev": "microbundle watch --sourcemap false"
-  },
-  "devDependencies": {
-    "microbundle": "^0.11.0",
-    "typescript": "~3.1.1"
-  },
-  "description": "Fast, unopinionated, minimalist browser and server router ;)",
-  "version": "1.0.8",
-  "directories": {
-    "example": "examples"
-  },
-  "keywords": [
-    "API",
-    "browser",
-    "router",
-    "express",
-    "urout"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kethan/urout.git"
-  },
-  "author": "Kethan Surana",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/kethan/urout/issues"
-  },
-  "homepage": "https://github.com/kethan/urout#readme",
-  "dependencies": {}
+	"name": "urout",
+	"description": "Fast, unopinionated, minimalist browser and server router",
+	"version": "2.0.0",
+	"source": "src/index.ts",
+	"main": "./dist/urout.umd.js",
+	"module": "./dist/urout.es.js",
+	"unpkg": "./dist/urout.umd.js",
+	"types": "./index.d.ts",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"serve": "vite preview"
+	},
+	"exports": {
+		".": {
+			"import": "./dist/urout.es.js",
+			"require": "./dist/urout.umd.js"
+		}
+	},
+	"devDependencies": {
+		"typescript": "^4.3.2",
+		"vite": "^2.3.7"
+	},
+	"directories": {
+		"example": "examples"
+	},
+	"keywords": [
+		"API",
+		"browser",
+		"router",
+		"express",
+		"urout"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kethan/urout.git"
+	},
+	"author": "Kethan Surana",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/kethan/urout/issues"
+	},
+	"homepage": "https://github.com/kethan/urout#readme",
+	"dependencies": {}
 }

@@ -1,45 +1,33 @@
-function parse(str: any) {
-	let out: any = {}, arr = str.split('&');
-	for (let i = 0, k, v; i < arr.length; i++) {
-		[k, v = ''] = arr[i].split('=');
-		out[k] = out[k] !== void 0 ? [].concat(out[k], v) : v;
-	}
-	return out;
-}
+import * as qs from './query';
 
 export default (req: any, toDecode: boolean) => {
+	let raw = req.url;
+	if (raw == null) return;
 
-	let url = req.url;
-	if (url == null) return;
+	let prev = req._parsedUrl;
+	if (prev && prev.raw === raw) return prev;
 
-	let obj = req._parsedUrl;
-	if (obj && obj._raw === url) return obj;
+	let pathname=raw, search='', query;
 
-	obj = {
-		path: url,
-		pathname: url,
-		search: null,
-		query: null,
-		href: url,
-		_raw: url
-	};
-
-	if (url.length > 1) {
-		if (toDecode && !req._decoded && !!~url.indexOf('%', 1)) {
-			url = req.url = obj.href = obj.path = obj.pathname = obj._raw = decodeURIComponent(url);
-			req._decoded = true;
-		}
-
-		let idx = url.indexOf('?', 1);
+	if (raw.length > 1) {
+		let idx = raw.indexOf('?', 1);
 
 		if (idx !== -1) {
-			obj.search = url.substring(idx);
-			obj.query = obj.search.substring(1);
-			obj.pathname = url.substring(0, idx);
-			if (toDecode && obj.query.length > 0) {
-				obj.query = parse(obj.query);
+			search = raw.substring(idx);
+			pathname = raw.substring(0, idx);
+			if (search.length > 1) {
+				query = qs.parse(search.substring(1));
+			}
+		}
+
+		if (!!toDecode && !req._decoded) {
+			req._decoded = true;
+			if (pathname.indexOf('%') !== -1) {
+				try { pathname = decodeURIComponent(pathname) }
+				catch (e) { /* URI malformed */ }
 			}
 		}
 	}
-	return (req._parsedUrl = obj);
+
+	return req._parsedUrl = { pathname, search, query, raw };
 }
