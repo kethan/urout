@@ -1,6 +1,5 @@
 import reg from './regexparam';
 import parser from './url';
-
 export interface Opts {
     onError?(err: any, req: any, res: any): void;
     onNoMatch?(req: any, res: any, next: Function): void;
@@ -15,7 +14,7 @@ export type Method = (pattern: string | RegExp, ...handlers: Handler[]) => Route
 export class Router {
     all: Method | any; get: Method | any; head: Method | any; patch: Method | any; options: Method | any; connect: Method | any; delete: Method | any; trace: Method | any; post: Method | any; put: Method | any;
     private mount = (fn: any) => fn instanceof Router ? fn.attach : fn
-    private routes:any = [];
+    private routes: any = [];
     private parse: Function;
     private onError: any;
     private onNoMatch: any;
@@ -71,7 +70,7 @@ export class Router {
                 ...fns.map(this.mount),
                 (req: any, _: any, next: any) => {
                     req.path = req._parsedUrl.pathname;
-					req.url = req.path + req._parsedUrl.search;
+                    req.url = req.path + req._parsedUrl.search;
                     next()
                 }
             );
@@ -100,11 +99,17 @@ export class Router {
         req.url = info.pathname + info.search;
         req.query = info.query || {};
         req.search = info.search;
-
+        req.routePath = req.originalUrl;
+        if (req.params) {
+            for (const [key, value] of Object.entries(req.params)) {
+                req.routePath = req.routePath.replace(value, `:${key}`)
+            }
+            req.routePath = req.routePath.replace(req.search, '');
+        }
         try {
             let i = 0, arr: any = obj.handlers.concat(this.onNoMatch), len = arr.length;
             let loop = async () => res.finished || (i < len) && arr[i++](req, res, next);
-            (next = next || ((err:any) => err ? this.onError(err, req, res, next) : loop().catch(next)))();
+            (next = next || ((err: any) => err ? this.onError(err, req, res, next) : loop().catch(next)))();
         } catch (err) {
             this.onError(err, req, res, next);
         }
