@@ -43,14 +43,13 @@ export interface Request {
 }
 
 type Pattern = RegExp | string;
-export interface Router<T extends Request = Request> extends TRouter<Middleware<T>> {
+export class Router<T extends Request = Request> extends TRouter<Middleware<T>> {
+    constructor(opts?: IOptions);
     readonly routes: Middleware<T>[];
-	readonly onError: ErrorHandler<T>;
-	readonly onNoMatch: Middleware<T>;
-	readonly handler: Middleware<T>;
-	parse: (req: Request) => ParsedURL;
-	use(pattern: RegExp|string, ...handlers: (Router<T> | Middleware<T>)[]): this;
-	use(...handlers: (Router<T> | Middleware<T>)[]): this;
+    readonly onError: ErrorHandler<T>;
+    readonly onNoMatch: Middleware<T>;
+    readonly handler: Middleware<T>;
+    parse: (req: Request) => ParsedURL;
+    use(pattern: RegExp | string, ...handlers: (Router<T> | Middleware<T>)[]): this;
+    use(...handlers: (Router<T> | Middleware<T>)[]): this;
 }
-
-export default function <T extends Request = Request> (options?: IOptions<T>): Router<T>;
