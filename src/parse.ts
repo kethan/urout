@@ -1,13 +1,13 @@
-import * as qs from './query';
+import * as qs from 'querystring';
 
-export default (req: any, toDecode: boolean) => {
+export function parse(req: any, toDecode: boolean): any {
 	let raw = req.url;
 	if (raw == null) return;
 
 	let prev = req._parsedUrl;
 	if (prev && prev.raw === raw) return prev;
 
-	let pathname=raw, search='', query;
+	let pathname = raw, search = '', query;
 
 	if (raw.length > 1) {
 		let idx = raw.indexOf('?', 1);

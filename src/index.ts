@@ -1,96 +1,106 @@
-import reg from './regexparam';
-import parser from './url';
-export interface Opts {
-    onError?(err: any, req: any, res: any): void;
-    onNoMatch?(req: any, res: any, next: Function): void;
-    server?: any;
+import { Methods } from 'trouter';
+import TRouter from 'trouter';
+import { parse } from './parse';
+
+export type Promisable<T> = Promise<T> | T;
+export interface ParsedURL {
+    pathname: string;
+    search: string;
+    query: Record<string, string | string[]> | void;
+    raw: string;
+}
+export interface IError extends Error {
+    code?: number;
+    status?: number;
+    details?: any;
 }
 
-export type NextHandler = (req: any, res: any, next: Function) => void;
-export type EndHandler = (req: any, res: any) => void;
-export type Handler = NextHandler | EndHandler | Router
-export type Method = (pattern: string | RegExp, ...handlers: Handler[]) => Router;
+export type NextHandler = (err?: string | IError) => Promisable<void>;
+export type ErrorHandler<T extends Request = Request> = (err: string | IError | { code: number }, req: T, res: Response, next: NextHandler) => Promisable<void>;
+export type Middleware<T = Request> = (req: T & Request, res: Response, next: NextHandler) => Promisable<void>;
 
-export class Router {
-    all: Method | any; get: Method | any; head: Method | any; patch: Method | any; options: Method | any; connect: Method | any; delete: Method | any; trace: Method | any; post: Method | any; put: Method | any;
-    private mount = (fn: any) => fn instanceof Router ? fn.attach : fn
-    private routes: any = [];
-    private parse: Function;
-    private onError: any;
-    private onNoMatch: any;
-    private attach: Function;
-    constructor(opts: Opts = {}) {
-        this.parse = parser;
+export interface IOptions<T extends Request = Request> {
+    onNoMatch?: Middleware<T>;
+    onError?: ErrorHandler<T>;
+}
+
+export type Response = {
+    statusCode?: number;
+    statusMessage?: string;
+    finished?: boolean;
+    end(chunk: any, cb?: any): void;
+}
+
+export interface Request {
+    url: string;
+    method: Methods;
+    originalUrl?: string;
+    params?: Record<string, string>;
+    path?: string;
+    search?: string;
+    query?: Record<string, string | string[]> | void;
+    body?: any;
+    routePath?: string;
+    _decoded?: true;
+    _parsedUrl?: ParsedURL;
+}
+
+function onError(err: any, _req: Request, res: Response) {
+    if (typeof err === 'string') res.end(err);
+    else res.end(err.message);
+}
+
+const mount = (fn: any) => fn instanceof Router ? fn.attach : fn;
+
+export class Router<T extends Request = Request> extends TRouter<Middleware<T>> {
+    parse: (req: Request, toDecode: boolean) => ParsedURL;
+    attach: any;
+    onError: ErrorHandler<T>;
+    onNoMatch: Middleware<T>;
+    constructor(opts: IOptions = {}) {
+        super();
+        this.parse = parse;
         this.handler = this.handler.bind(this);
-        this.onError = opts.onError || this.onErrorI;
+        this.onError = opts.onError || onError; // catch-all handler
         this.onNoMatch = opts.onNoMatch || this.onError.bind(null, { code: 404 });
-        this.attach = (req: any, res: any) => setTimeout(this.handler, 0, req, res);
-        this.all = this.add.bind(this, '');
-        this.get = this.add.bind(this, 'GET');
-        this.head = this.add.bind(this, 'HEAD');
-        this.patch = this.add.bind(this, 'PATCH');
-        this.options = this.add.bind(this, 'OPTIONS');
-        this.connect = this.add.bind(this, 'CONNECT');
-        this.delete = this.add.bind(this, 'DELETE');
-        this.trace = this.add.bind(this, 'TRACE');
-        this.post = this.add.bind(this, 'POST');
-        this.put = this.add.bind(this, 'PUT');
+        this.attach = (req: Request, res: Response) => setTimeout(this.handler, 0, req, res);
     }
-
-    private useI(route: string, ...fns: Function[] | any) {
-        let handlers = [].concat.apply([], fns);
-        let { keys, pattern } = reg(route, true);
-        this.routes.push({ keys, pattern, method: '', handlers });
-        return this;
-    }
-
-    use(route: any, ...fns: any) {
-        if (route === '/') {
-            this.useI(route, fns.map(this.mount));
-        }
-        else if (typeof route === 'function' || route instanceof Router) {
-            this.useI('/', [route, ...fns].map(this.mount));
+    use(base: RegExp | string, ...fns: (Router<T> | Middleware<T>)[]): this;
+    use(...handlers: (Router<T> | Middleware<T>)[]): this;
+    use(base: any, ...fns: (Router<T> | Middleware<T>)[]): this {
+        if (base === '/') {
+            super.use(base, ...fns.map(mount));
+        } else if (typeof base === 'function' || base instanceof Router) {
+            super.use('/', ...[base, ...fns].map(mount));
         } else {
-            this.useI(route,
-                (req: any, _: any, next: any) => {
-                    if (typeof route === 'string') {
-                        let len = route.length;
-                        route.startsWith('/') || len++;
+            super.use(base,
+                (req, _, next) => {
+                    if (typeof base === 'string') {
+                        let len = base.length;
+                        base.startsWith('/') || len++;
                         req.url = req.url.substring(len) || '/';
-                        req.path = req.path.substring(len) || '/';
+                        req.path = (req.path && req.path.substring(len)) || '/';
                     } else {
-                        req.url = req.url.replace(route, '') || '/';
-                        req.path = req.path.replace(route, '') || '/';
+                        req.url = req.url.replace(base, '') || '/';
+                        req.path = (req.path && req.path.replace(base, '')) || '/';
                     }
                     if (req.url.charAt(0) !== '/') {
                         req.url = '/' + req.url;
                     }
                     next();
                 },
-                ...fns.map(this.mount),
-                (req: any, _: any, next: any) => {
-                    req.path = req._parsedUrl.pathname;
-                    req.url = req.path + req._parsedUrl.search;
-                    next()
+                ...fns.map(mount),
+                (req, _, next) => {
+                    req.path = req._parsedUrl?.pathname || '';
+                    req.url = req.path + req._parsedUrl?.search || '';
+                    next();
                 }
             );
         }
-
         return this;
     }
 
-    private onErrorI(err: any, _req: any, res: any) {
-        res.end(err.length && err || err.message);
-    }
-
-    add(method: string, route?: string, ...fns: Function[] | any) {
-        let { keys, pattern } = reg(route);
-        let handlers = [].concat.apply([], fns);
-        this.routes.push({ keys, pattern, method, handlers });
-        return this;
-    }
-
-    handler(req: any, res: any, next?: any) {
+    handler(req: T, res: Response, next?: any) {
         let info = this.parse(req, true);
         let obj = this.find(req.method, req.path = info.pathname);
 
@@ -99,13 +109,16 @@ export class Router {
         req.url = info.pathname + info.search;
         req.query = info.query || {};
         req.search = info.search;
-        req.routePath = req.originalUrl;
+        req.routePath = '';
+
         if (req.params) {
+            let routePath = req.originalUrl;
             for (const [key, value] of Object.entries(req.params)) {
-                req.routePath = req.routePath.replace(value, `:${key}`)
+                routePath = routePath.replace(value, `:${key}`)
             }
-            req.routePath = req.routePath.replace(req.search, '');
+            req.routePath = routePath.replace(req.search, '');
         }
+
         try {
             let i = 0, arr: any = obj.handlers.concat(this.onNoMatch), len = arr.length;
             let loop = async () => res.finished || (i < len) && arr[i++](req, res, next);
@@ -113,30 +126,6 @@ export class Router {
         } catch (err) {
             this.onError(err, req, res, next);
         }
-    }
 
-    private find(method: string, url: string) {
-        let isHEAD = (method === 'HEAD');
-        let i = 0, j = 0, k, tmp: any, arr = this.routes;
-        let matches: any = [], params: any = {}, handlers: any = [];
-        for (; i < arr.length; i++) {
-            tmp = arr[i];
-            if (tmp.method.length === 0 || tmp.method === method || isHEAD && tmp.method === 'GET') {
-                if (tmp.keys === false) {
-                    matches = tmp.pattern.exec(url);
-                    if (matches === null) continue;
-                    if (matches.groups !== void 0) for (k in matches.groups) params[k] = matches.groups[k];
-                    tmp.handlers.length > 1 ? (handlers = handlers.concat(tmp.handlers)) : handlers.push(tmp.handlers[0]);
-                } else if (tmp.keys.length > 0) {
-                    matches = tmp.pattern.exec(url);
-                    if (matches === null) continue;
-                    for (j = 0; j < tmp.keys.length;) params[tmp.keys[j]] = matches[++j];
-                    tmp.handlers.length > 1 ? (handlers = handlers.concat(tmp.handlers)) : handlers.push(tmp.handlers[0]);
-                } else if (tmp.pattern.test(url)) {
-                    tmp.handlers.length > 1 ? (handlers = handlers.concat(tmp.handlers)) : handlers.push(tmp.handlers[0]);
-                }
-            } // else not a match
-        }
-        return { params, handlers };
     }
 }

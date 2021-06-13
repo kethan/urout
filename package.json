@@ -1,7 +1,7 @@
 {
 	"name": "urout",
 	"description": "Fast, unopinionated, minimalist browser and server router",
-	"version": "2.0.2",
+	"version": "2.0.3",
 	"source": "src/index.ts",
 	"main": "./dist/urout.umd.js",
 	"module": "./dist/urout.es.js",
@@ -42,5 +42,8 @@
 		"url": "https://github.com/kethan/urout/issues"
 	},
 	"homepage": "https://github.com/kethan/urout#readme",
-	"dependencies": {}
+	"dependencies": {
+		"querystring": "^0.2.1",
+		"trouter": "^3.2.0"
+	}
 }
