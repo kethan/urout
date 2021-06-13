@@ -51,7 +51,6 @@ function onError(err: any, _req: Request, res: Response) {
 }
 
 const mount = (fn: any) => fn instanceof Router ? fn.attach : fn;
-
 export class Router<T extends Request = Request> extends TRouter<Middleware<T>> {
     parse: (req: Request, toDecode: boolean) => ParsedURL;
     attach: any;
