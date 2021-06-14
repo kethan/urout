@@ -29,6 +29,7 @@ export type Response = {
     statusMessage?: string;
     finished?: boolean;
     end(chunk: any, cb?: any): void;
+    redirect?(path: string, options?: any): void;
 }
 
 export interface Request {
